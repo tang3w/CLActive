@@ -11,7 +11,7 @@ module CLActive
     end
   end
 
-  parser = ->(cmd, args) do
+  parser = lambda do |cmd, args|
     queue = [cmd]
 
     until args.empty?
