@@ -76,27 +76,17 @@ module CLActive
     end
   end
 
-  klass_delegate = Class.new do
-    attr_reader :cmd
+  apis = [:subcmd, :option, :action]
+  eigen = class << self; self end
+  cmd = klass_subcmd.new
 
-    define_method :initialize do
-      @args = ARGV.dup
-      @cmd = klass_subcmd.new
-
-      at_exit do
-        parser.call(@cmd, @args.dup)
-      end
+  apis.each do |api|
+    eigen.send(:define_method, api) do |*args, &block|
+      cmd.send(api, *args, &block)
     end
   end
 
-  delegate = klass_delegate.new
-  eigen = class << self; self end
-
-  self.instance_eval do
-    [:subcmd, :option, :action].each do |api|
-      eigen.send(:define_method, api) do |*args, &block|
-        delegate.cmd.send(api, *args, &block)
-      end
-    end
+  at_exit do
+    parser.call(cmd, ARGV.dup)
   end
 end
