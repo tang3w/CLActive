@@ -90,10 +90,11 @@ module CLActive
   end
 
   delegate = klass_delegate.new
+  eigen = class << self; self end
 
   self.instance_eval do
     [:subcmd, :option, :action].each do |api|
-      define_singleton_method api do |*args, &block|
+      eigen.send(:define_method, api) do |*args, &block|
         delegate.cmd.send(api, *args, &block)
       end
     end
