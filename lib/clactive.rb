@@ -12,7 +12,7 @@ module CLActive
   end
 
   parser = ->(cmd, args) do
-    queue = []
+    queue = [cmd]
 
     until args.empty?
       begin
@@ -22,13 +22,14 @@ module CLActive
         return
       end
 
-      queue << cmd
       break unless name = args.shift
 
       unless cmd = subcmds[name]
         puts "invalid option: " << name
         return
       end
+
+      queue << cmd
     end
 
     queue.each(&:run)
