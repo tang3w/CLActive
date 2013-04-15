@@ -29,6 +29,18 @@ You enter 5 level
 You are god now
 ```
 
+An optional command parameter can be given to action block:
+
+```ruby
+CLActive.action do |opt, cmd|
+  if opt.empty?
+    cmd.help
+  end
+end
+```
+
+cmd.help will puts help infomation in standard output.
+
 And you can also create subcommand:
 
 ```ruby
