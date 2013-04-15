@@ -37,24 +37,27 @@ module CLActive
 
   klass_subcmd = Class.new do
     define_method :initialize do
-      @options = {}.extend(tos)
       @subcmds = {}.extend(tos)
       @usropts = {}.extend(tos)
+      @parser = OptionParser.new
     end
 
     def parse(args)
-      OptionParser.new do |opt|
-        @options.each do |key, argv|
-          opt.on(*argv) do |val|
-            @usropts[key] = val
-          end
-        end
-      end.order!(args)
+      @parser.order!(args)
       @subcmds
     end
 
+    def help
+      puts @parser.help
+    end
+
     def run
-      @action.call(@usropts) if @action
+      if @action
+        argv = [@usropts]
+        argc = @action.arity
+        argv << self if argc > 1 || argc < 0
+        @action.call(*argv)
+      end
     end
 
     def subcmd(name)
@@ -66,7 +69,9 @@ module CLActive
     end
 
     def option(name, *argv)
-      @options[name] = argv if argv
+      @parser.on(*argv) do |val|
+        @usropts[name] = val
+      end
       self
     end
 
