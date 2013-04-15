@@ -39,7 +39,7 @@ CLActive.action do |opt, cmd|
 end
 ```
 
-cmd.help will puts help infomation in standard output.
+`cmd.help` will puts help infomation in standard output.
 
 And you can also create subcommand:
 
