@@ -2,7 +2,7 @@ Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
 
   s.name     = 'clactive'
-  s.version  = '0.0.7'
+  s.version  = '0.0.8'
   s.license  = 'MIT'
   s.email    = 'tang3w@gmail.com'
   s.author   = 'Tang Tianyong'

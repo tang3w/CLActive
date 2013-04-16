@@ -1,3 +1,5 @@
+require 'optparse'
+
 module CLActive
   tos = Module.new do
     def [](key)
@@ -11,7 +13,6 @@ module CLActive
 
   parser = lambda do |cmd, args|
     start = cmd
-    require 'optparse'
 
     until args.empty?
       begin
@@ -64,7 +65,9 @@ module CLActive
 
     def run
       if @action
-        self.instance_exec(@usropts, &@action)
+        argv = []
+        argv << @usropts if @action.arity != 0
+        self.instance_exec(*argv, &@action)
         subcmd.run if subcmd
       end
     end
