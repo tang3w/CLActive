@@ -97,6 +97,14 @@ module CLActive
         @parser.on(*argv) do |val|
           @usropts[key] = val
         end
+
+        meth = key.to_s + '?'
+        if meth.to_sym.inspect !~ /[@$"]/ && !respond_to?(meth, true)
+          eigen = class << self; self end
+          eigen.send(:define_method, meth) do
+            @usropts[key]
+          end
+        end
       end
     end
 
