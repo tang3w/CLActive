@@ -80,9 +80,10 @@ module CLActive
       subcmds[key]
     end
 
-    def subcmd(&block)
+    def subcmd(key = nil, &block)
       if block
         cmd = self.class.new
+        cmd.name(key) if key
         cmd.instance_exec(&block)
         subcmds[cmd.name] = cmd if cmd.name
       else
