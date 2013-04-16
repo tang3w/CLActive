@@ -92,7 +92,7 @@ module CLActive
     end
 
     def option(key, *argv)
-      if argv
+      unless argv.empty?
         @options[key] = argv
         @parser.on(*argv) do |val|
           @usropts[key] = val
