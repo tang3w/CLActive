@@ -1,5 +1,3 @@
-require 'optparse'
-
 module CLActive
   tos = Module.new do
     def [](key)
@@ -12,11 +10,12 @@ module CLActive
   end
 
   parser = lambda do |cmd, args|
-    queue = [cmd]
+    start = cmd
+    require 'optparse'
 
     until args.empty?
       begin
-        subcmds = cmd.parse(args)
+        cmd.parse(args)
       rescue OptionParser::ParseError => e
         puts e.message
         return
@@ -24,66 +23,89 @@ module CLActive
 
       break unless name = args.shift
 
-      unless cmd = subcmds[name]
+      unless subcmd = cmd[name]
         puts "invalid option: " << name
         return
       end
 
-      queue << cmd
+      cmd.subcmd = subcmd
+      cmd = subcmd
     end
 
-    queue.each(&:run)
+    start.run
   end
 
   klass_subcmd = Class.new do
+    attr_reader :options
+    attr_reader :subcmds
+
     define_method :initialize do
+      @options = {}.extend(tos)
       @subcmds = {}.extend(tos)
       @usropts = {}.extend(tos)
       @parser = OptionParser.new
     end
 
+    def name(key = nil)
+      key ? (@name = key.to_s) : @name
+    end
+
+    def symbol
+      name.to_sym if name
+    end
+
     def parse(args)
       @parser.order!(args)
-      @subcmds
     end
 
     def help
-      puts @parser.help
+      @parser.help
     end
 
     def run
       if @action
-        argv = [@usropts]
-        argc = @action.arity
-        argv << self if argc > 1 || argc < 0
-        @action.call(*argv)
+        self.instance_exec(@usropts, &@action)
+        subcmd.run if subcmd
       end
     end
 
-    def subcmd(name)
-      if block_given?
-        yield cmd = self.class.new
-        @subcmds[name] = cmd
-      end
-      self
+    def subcmd=(cmd)
+      @subcmd = cmd
     end
 
-    def option(name, *argv)
-      @parser.on(*argv) do |val|
-        @usropts[name] = val
+    def [](key)
+      subcmds[key]
+    end
+
+    def subcmd(&block)
+      if block
+        cmd = self.class.new
+        cmd.instance_exec(&block)
+        subcmds[cmd.name] = cmd if cmd.name
+      else
+        @subcmd
       end
-      self
+    end
+
+    def option(key, *argv)
+      if argv
+        @options[key] = argv
+        @parser.on(*argv) do |val|
+          @usropts[key] = val
+        end
+      end
     end
 
     def action(&block)
       @action = block if block
-      self
     end
   end
 
-  apis = [:subcmd, :option, :action]
+  apis = %w(name subcmd option action)
   eigen = class << self; self end
   cmd = klass_subcmd.new
+
+  cmd.name File::basename($0, '.*')
 
   apis.each do |api|
     eigen.send(:define_method, api) do |*args, &block|
@@ -94,4 +116,8 @@ module CLActive
   at_exit do
     parser.call(cmd, ARGV.dup)
   end
+end
+
+def CLActive(&block)
+  CLActive.instance_exec(&block) if block
 end
