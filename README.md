@@ -102,3 +102,30 @@ $ mary create -n Spider-Man random
 Spider-Man is born!
 &@^?(^%&*@!
 ```
+
+CLActive also support alias command:
+
+```ruby
+CLActive do
+  subcmd :create, :new, :cr do
+    option :nick, '-n n', '--nick=name', 'Nick of character'
+    action { puts "#{nick? || 'Somebody'} is born!" }
+  end
+
+  option :god, '-g', '--god', 'God mode'
+  action { puts "God mode" if god? }
+end
+```
+
+When you create an sub command, the first argument is the name of command.
+
+Alias can be given follow the name. Here, two alias (new and cr) are created:
+
+```bash
+$ mary create -n Spider-Man
+Spider-Man is born!
+$ mary new -n Spider-Man
+Spider-Man is born!
+$ mary cr -n Spider-Man
+Spider-Man is born!
+```
