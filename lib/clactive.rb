@@ -77,13 +77,24 @@ module CLActive
     end
 
     def [](key)
-      subcmds[key]
+      cmd = subcmds[key]
+      unless cmd
+        key = key.to_s
+        subcmds.reverse_each do |_, val|
+          return val if val.aka.include?(key)
+        end
+      end
+      cmd
     end
 
-    def subcmd(key = nil, &block)
+    def subcmd(*keys, &block)
       if block
         cmd = self.class.new
-        cmd.name(key) if key
+        unless keys.empty?
+          keys.map!(&:to_s)
+          cmd.name(keys.shift)
+          cmd.aka.concat(keys) unless keys.empty?
+        end
         cmd.instance_exec(&block)
         subcmds[cmd.name] = cmd if cmd.name
       else
@@ -110,6 +121,15 @@ module CLActive
 
     def action(&block)
       @action = block if block
+    end
+
+    def aka(key = nil)
+      if key
+        key = key.to_s
+        aka << key unless aka.include?(key)
+      else
+        @aka ||= []
+      end
     end
   end
 
