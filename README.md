@@ -1,92 +1,104 @@
 CLActive
 ========
 
-Command line helper for ruby
+CLActive help you to build command quickly.
 
-CLActive help you to build command quickly:
+Install CLActive by `gem install clactive`, maybe require super user.
+
+Now, let's build an command called `mary`:
 
 ```ruby
-# file mary
+#!/usr/bin/env ruby
+# mary - Super Mary
+
+require 'rubygems'  # No need if ruby version >= 1.9
 require 'clactive'
 
-CLActive.option :god, '-g', '--god', 'god mode'
-CLActive.option :level, '-l name', '--level=name', 'level number'
-CLActive.action do |opt|
-  if opt[:level]
-    puts "You enter #{opt[:level]} level"
-  end
-  if opt[:god]
-    puts 'You are god now'
-  end
+CLActive do
+  option :god, '-g', '--god', 'God mode'
+  action { puts "God mode" if god? }
 end
 ```
 
-Then, you can start game now:
+The code above create an option and an action. We can start god mode:
 
-```
-$ mary -g --level=5
-You enter 5 level
-You are god now
+```bash
+$ mary -g  # Or `mary --god`
+God mode
 ```
 
-An optional command parameter can be given to action block:
+As you can see, All things will be done in block of CLActive:
 
 ```ruby
-CLActive.action do |opt, cmd|
-  if opt.empty?
-    cmd.help
-  end
+CLActive do  # CLActive block
+  # TODO: all work is here
 end
 ```
 
-`cmd.help` will puts help infomation in standard output.
+`option` method create an command option.
 
-And you can also create subcommand:
+`action` method create an command action.
+
+`god?` is a dynamic predicate method create by CLActive.
+
+Dynamic predicate method does not override the method with the same name.
+
+Alternatively, you can recieve options from block:
 
 ```ruby
-CLActive.subcmd :create do |create|
-  create.option :name, '-n name', '--nick=name'
-  create.action do |opt|
-    if opt[:name]
-      puts "#{opt[:name]} is born"
-    end
+CLActive do
+  option :god, '-g', '--god', 'God mode'
+  action do |opt|
+    puts "God mode" if opt[:god]
   end
 end
 ```
 
-Now, let's create a spider man:
+If you like, you can use `opt['god']` instead of `opt[:god]`.
 
-```
-$ mary create -n Spider-Man
-Spider-Man is born
-```
-
-What's more, you can build nest subcommand:
+CLActive support sub command:
 
 ```ruby
-CLActive.subcmd :create do |create|
-  create.option :name, '-n name', '--nick=name'
-  create.action do |opt|
-    if opt[:name]
-      puts "#{opt[:name]} is born"
-    end
+CLActive do
+  subcmd :create do
+    option :nick, '-n n', '--nick=name', 'Nick of character'
+    action { puts "#{nick? || 'Somebody'} is born!" }
   end
-  create.subcmd :random do |random|
-    random.action do |opt|
-      number = 1 + Random.rand(5)
-      number.times do
-        puts "new character is born"
-      end
-    end
-  end
+
+  option :god, '-g', '--god', 'God mode'
+  action { puts "God mode" if god? }
 end
 ```
 
-Now, you can create random characters:
+Now, create a Spider Man:
 
+```bash
+$ mary create --nick=Spider-Man
+Spider-Man is born!
 ```
-$ mary create random
-new character is born
-new character is born
-new character is born
+
+More, you can create nested sub comand:
+
+```ruby
+CLActive do
+  subcmd :create do
+    subcmd :random do
+      action { puts '&@^?(^%&*@!' }
+    end
+    
+    option :nick, '-n n', '--nick=name', 'Nick of character'
+    action { puts "#{nick? || 'Somebody'} is born!" }
+  end
+
+  option :god, '-g', '--god', 'God mode'
+  action { puts "God mode" if god? }
+end
+```
+
+Run the random sub command:
+
+```bash
+$ mary create -n Spider-Man random
+Spider-Man is born!
+&@^?(^%&*@!
 ```
