@@ -30,7 +30,7 @@ God mode
 As you can see, All things will be done in block of CLActive:
 
 ```ruby
-CLActive do  # CLActive block
+CLActive do
   # TODO: all work is here
 end
 ```
@@ -48,7 +48,7 @@ Alternatively, you can recieve options from block:
 ```ruby
 CLActive do
   option :god, '-g', '--god', 'God mode'
-  action do |opt|
+  action do |opt|  # User specified options
     puts "God mode" if opt[:god]
   end
 end
@@ -64,9 +64,6 @@ CLActive do
     option :nick, '-n n', '--nick=name', 'Nick of character'
     action { puts "#{nick? || 'Somebody'} is born!" }
   end
-
-  option :god, '-g', '--god', 'God mode'
-  action { puts "God mode" if god? }
 end
 ```
 
@@ -77,6 +74,17 @@ $ mary create --nick=Spider-Man
 Spider-Man is born!
 ```
 
+If you like, you can also use `name` method to specify command name:
+
+```ruby
+CLActive do
+  subcmd do
+    name :create
+    # TODO
+  end
+end
+```
+
 More, you can create nested sub comand:
 
 ```ruby
@@ -85,21 +93,14 @@ CLActive do
     subcmd :random do
       action { puts '&@^?(^%&*@!' }
     end
-    
-    option :nick, '-n n', '--nick=name', 'Nick of character'
-    action { puts "#{nick? || 'Somebody'} is born!" }
   end
-
-  option :god, '-g', '--god', 'God mode'
-  action { puts "God mode" if god? }
 end
 ```
 
 Run the random sub command:
 
 ```bash
-$ mary create -n Spider-Man random
-Spider-Man is born!
+$ mary create random
 &@^?(^%&*@!
 ```
 
@@ -111,9 +112,6 @@ CLActive do
     option :nick, '-n n', '--nick=name', 'Nick of character'
     action { puts "#{nick? || 'Somebody'} is born!" }
   end
-
-  option :god, '-g', '--god', 'God mode'
-  action { puts "God mode" if god? }
 end
 ```
 
@@ -122,10 +120,47 @@ When you create an sub command, the first argument is the name of command.
 Alias can be given follow the name. Here, two alias (new and cr) are created:
 
 ```bash
-$ mary create -n Spider-Man
-Spider-Man is born!
 $ mary new -n Spider-Man
 Spider-Man is born!
 $ mary cr -n Spider-Man
 Spider-Man is born!
+```
+
+You can also use `aka` method to create alias:
+
+```ruby
+CLActive do
+  subcmd :create do
+    aka :new, :cr  # Add two alias
+  end
+end
+```
+
+You can access subcmd's all infomation in action block:
+
+```ruby
+CLActive do
+  subcmd :play do
+    subcmd :football, :md do
+      option :team, '-t t', '--team=team', 'Team'
+    end
+  end
+
+  action do
+    if subcmd && subcmd.symbol == :play
+      if subcmd.subcmd && subcmd.subcmd.team?
+        puts "Mary play with #{subcmd.subcmd.team?}"
+      end
+    end
+  end
+end
+```
+
+`subcmd.symbol` is a method, which return symbol of `name` method.
+
+Play football with asenna:
+
+```bash
+$ mary play football -t asenna
+Mary play with asenna
 ```
