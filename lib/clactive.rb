@@ -12,8 +12,6 @@ module CLActive
   end
 
   parser = lambda do |cmd, args|
-    start = cmd
-
     until args.empty?
       begin
         cmd.parse(args)
@@ -22,23 +20,24 @@ module CLActive
         return
       end
 
-      break unless name = args.shift
+      name = args.shift
+      break if !name || !cmd.usropts.empty?
 
       unless subcmd = cmd[name]
         puts "invalid option: " << name
         return
       end
 
-      cmd.subcmd = subcmd
       cmd = subcmd
     end
 
-    start.run
+    cmd.run
   end
 
   klass_subcmd = Class.new do
     attr_reader :options
     attr_reader :subcmds
+    attr_reader :usropts
 
     define_method :initialize do
       @options = {}.extend(tos)
@@ -68,12 +67,7 @@ module CLActive
         argv = []
         argv << @usropts if @action.arity != 0
         self.instance_exec(*argv, &@action)
-        subcmd.run if subcmd
       end
-    end
-
-    def subcmd=(cmd)
-      @subcmd = cmd
     end
 
     def [](key)
@@ -97,8 +91,6 @@ module CLActive
         end
         cmd.instance_exec(&block)
         subcmds[cmd.name] = cmd if cmd.name
-      else
-        @subcmd
       end
     end
 
