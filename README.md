@@ -135,32 +135,3 @@ CLActive do
   end
 end
 ```
-
-You can access subcmd's all infomation in action block:
-
-```ruby
-CLActive do
-  subcmd :play do
-    subcmd :football, :md do
-      option :team, '-t t', '--team=team', 'Team'
-    end
-  end
-
-  action do
-    if subcmd && subcmd.symbol == :play
-      if subcmd.subcmd && subcmd.subcmd.team?
-        puts "Mary play with #{subcmd.subcmd.team?}"
-      end
-    end
-  end
-end
-```
-
-`subcmd.symbol` is a method, which return symbol of `name` method.
-
-Play football with asenna:
-
-```bash
-$ mary play football -t asenna
-Mary play with asenna
-```
